@@ -120,13 +120,15 @@ def summarize_with_claude(new_items: list[dict]) -> str:
 
 日本語で、実務担当者がすぐ行動できるよう端的にまとめてください。"""
 
+headers = {
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+    }
+    print(f"[DEBUG] API key starts with: {ANTHROPIC_API_KEY[:10] if ANTHROPIC_API_KEY else 'EMPTY'}")
     response = requests.post(
         "https://api.anthropic.com/v1/messages",
-        headers={
-            "x-api-key": ANTHROPIC_API_KEY,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-        },
+        headers=headers,
         json={
             "model": "claude-sonnet-4-20250514",
             "max_tokens": 1000,
