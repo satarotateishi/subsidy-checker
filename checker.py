@@ -31,14 +31,14 @@ TARGETS = [
     },
     {
         "name": "J-Net21（支援情報ヘッドライン）",
-        "url": "https://j-net21.smrj.go.jp/headline/",
+        "url": "https://j-net21.smrj.go.jp/snavi2/",
         "item_selector": ".headline-list li, .news-list li, li",
         "link_selector": "a",
     },
     {
-        "name": "宮城県 中小企業支援",
-        "url": "https://www.pref.miyagi.jp/soshiki/chusho/",
-        "item_selector": ".news-list li, .info-list li, li",
+        "name": "気仙沼市 産業振興・助成金",
+        "url": "https://www.kesennuma.miyagi.jp/sec/s072/",
+        "item_selector": ".news li, .topics li, li",
         "link_selector": "a",
     },
     {
@@ -58,7 +58,10 @@ TARGETS = [
 KEYWORDS = [
     "補助金", "助成金", "公募", "募集開始", "申請受付",
     "支援金", "給付金", "補填", "IT導入", "省エネ", "事業再構築",
-    "小規模事業者", "サービス業", "小売", "製造"
+    "小規模事業者", "サービス業", "小売", "製造", "スタートアップ",
+    "創業", "起業", "新規事業", "事業化", "実証",
+    "販路開拓", "DX", "デジタル化", "イノベーション",
+    "成長", "第二創業", "社会課題", "地域課題"
 ]
 # ─────────────────────────────────────────────────────
 
