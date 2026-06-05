@@ -53,7 +53,7 @@ TARGETS = [
 KEYWORDS = [
     "補助金", "助成金", "公募", "募集開始", "申請受付",
     "支援金", "給付金", "補填", "IT導入", "省エネ", "事業再構築",
-    "小規模事業者", "サービス業", "小売"
+    "小規模事業者", "サービス業", "小売" ,"製造"
 ]
 # ─────────────────────────────────────────────────────
 
@@ -120,7 +120,7 @@ def summarize_with_claude(new_items: list[dict]) -> str:
 
 日本語で、実務担当者がすぐ行動できるよう端的にまとめてください。"""
 
-headers = {
+    headers = {
         "x-api-key": ANTHROPIC_API_KEY,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
