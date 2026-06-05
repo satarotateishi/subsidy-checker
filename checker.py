@@ -48,12 +48,12 @@ TARGETS = [
         "item_selector": ".news li, .topics li, li",
         "link_selector": "a",
     },
-　　 {
+    {
         "name": "東京都中小企業振興公社（助成金）",
         "url": "https://www.tokyo-kosha.or.jp/support/josei/index.html",
         "item_selector": ".news-list li, .topics-list li, li",
         "link_selector": "a",
-     },
+    },
 ]
 
 KEYWORDS = [
