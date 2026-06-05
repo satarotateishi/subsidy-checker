@@ -136,7 +136,7 @@ def summarize_with_claude(new_items: list[dict]) -> str:
         "https://api.anthropic.com/v1/messages",
         headers=headers,
         json={
-            "model": "claude-sonnet-4-20250514",
+            "model": "claude-haiku-4-5-20251001",
             "max_tokens": 1000,
             "messages": [{"role": "user", "content": prompt}],
         },
