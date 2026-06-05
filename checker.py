@@ -1,6 +1,6 @@
 """
 補助金・助成金 新着チェッカー
-対象：国（ミラサポplus, J-Net21）＋ 宮城県
+対象：国（ミラサポplus, J-Net21）＋ 宮城県・東京
 通知：Gmail
 """
 
@@ -15,14 +15,13 @@ from email.mime.multipart import MIMEMultipart
 from bs4 import BeautifulSoup
 
 # ── 設定 ──────────────────────────────────────────────
-ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
-GMAIL_ADDRESS     = os.environ["GMAIL_ADDRESS"]      # 送信元Gmailアドレス
-GMAIL_APP_PASSWORD= os.environ["GMAIL_APP_PASSWORD"] # Gmailアプリパスワード
-NOTIFY_TO         = os.environ["NOTIFY_TO"]          # 通知先メールアドレス
+ANTHROPIC_API_KEY  = os.environ["ANTHROPIC_API_KEY"]
+GMAIL_ADDRESS      = os.environ["GMAIL_ADDRESS"]
+GMAIL_APP_PASSWORD = os.environ["GMAIL_APP_PASSWORD"]
+NOTIFY_TO          = os.environ["NOTIFY_TO"]
 
-STATE_FILE = "seen_items.json"  # 既読管理ファイル（リポジトリに保存される）
+STATE_FILE = "seen_items.json"  # 既読管理ファイル（重複送信防止）
 
-# 監視対象サイト
 TARGETS = [
     {
         "name": "ミラサポplus（補助金・助成金）",
@@ -59,7 +58,7 @@ TARGETS = [
 KEYWORDS = [
     "補助金", "助成金", "公募", "募集開始", "申請受付",
     "支援金", "給付金", "補填", "IT導入", "省エネ", "事業再構築",
-    "小規模事業者", "サービス業", "小売" ,"製造"
+    "小規模事業者", "サービス業", "小売", "製造"
 ]
 # ─────────────────────────────────────────────────────
 
@@ -81,7 +80,6 @@ def item_id(text: str) -> str:
 
 
 def fetch_items(target: dict) -> list[dict]:
-    """サイトから項目リストを取得"""
     headers = {"User-Agent": "Mozilla/5.0 (compatible; SubsidyBot/1.0)"}
     try:
         res = requests.get(target["url"], headers=headers, timeout=15)
@@ -110,7 +108,7 @@ def is_relevant(text: str) -> bool:
 
 
 def summarize_with_claude(new_items: list[dict]) -> str:
-    """Claude APIで新着情報を要約・整理"""
+    """Claude APIで新着情報を要約・整理（公募開始日・締切を抽出）"""
     items_text = "\n".join(
         f"- [{i['source']}] {i['text']}　{i['url']}" for i in new_items
     )
@@ -119,11 +117,19 @@ def summarize_with_claude(new_items: list[dict]) -> str:
 
 {items_text}
 
-以下の形式で整理してください：
-1. 特に重要・申請を検討すべき情報（理由も一言で）
-2. その他の新着情報（簡潔にリスト）
-3. 申請期限が近いものがあれば警告
+以下の形式で各情報を整理してください。情報が読み取れない項目は「不明」と記載してください。
 
+---
+【重要度：高/中/低】
+■ 補助金・助成金名：
+■ 公募開始日：
+■ 申請締切：
+■ 概要：（2〜3行）
+■ URL：
+---
+
+複数ある場合は重要度が高いものを上に並べてください。
+最後に「申請期限が近いもの（1ヶ月以内）」があれば⚠️マークで警告してください。
 日本語で、実務担当者がすぐ行動できるよう端的にまとめてください。"""
 
     headers = {
@@ -131,19 +137,17 @@ def summarize_with_claude(new_items: list[dict]) -> str:
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
     }
-    print(f"[DEBUG] API key starts with: {ANTHROPIC_API_KEY[:10] if ANTHROPIC_API_KEY else 'EMPTY'}")
     response = requests.post(
         "https://api.anthropic.com/v1/messages",
         headers=headers,
         json={
             "model": "claude-haiku-4-5-20251001",
-            "max_tokens": 1000,
+            "max_tokens": 1500,
             "messages": [{"role": "user", "content": prompt}],
         },
         timeout=30,
     )
     print(f"[DEBUG] Status code: {response.status_code}")
-    print(f"[DEBUG] Response body: {response.text[:300]}")
     response.raise_for_status()
     return response.json()["content"][0]["text"]
 
@@ -153,8 +157,6 @@ def send_email(subject: str, body: str):
     msg["Subject"] = subject
     msg["From"]    = GMAIL_ADDRESS
     msg["To"]      = NOTIFY_TO
-
-    # プレーンテキスト
     msg.attach(MIMEText(body, "plain", "utf-8"))
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
@@ -174,8 +176,13 @@ def main():
         items = fetch_items(target)
         for item in items:
             uid = item_id(item["text"])
+            # 既読（seen）に入っているものはスキップ → 2回以上送らない
             if uid not in seen and is_relevant(item["text"]):
-                seen[uid] = {"text": item["text"][:80], "found_at": datetime.now().isoformat()}
+                seen[uid] = {
+                    "text": item["text"][:80],
+                    "found_at": datetime.now().isoformat(),
+                    "notified": True  # 通知済みフラグ
+                }
                 all_new.append(item)
 
     save_seen(seen)
