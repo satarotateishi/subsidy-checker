@@ -142,6 +142,8 @@ def summarize_with_claude(new_items: list[dict]) -> str:
         },
         timeout=30,
     )
+    print(f"[DEBUG] Status code: {response.status_code}")
+    print(f"[DEBUG] Response body: {response.text[:300]}")
     response.raise_for_status()
     return response.json()["content"][0]["text"]
 
