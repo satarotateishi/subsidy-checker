@@ -1,0 +1,39 @@
+name: 補助金 週次チェック
+
+on:
+  schedule:
+    # 毎週月曜 09:00 JST（= UTC 00:00）に実行
+    - cron: "0 0 * * 1"
+  workflow_dispatch:  # 手動実行ボタンも有効化
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 依存ライブラリをインストール
+        run: pip install requests beautifulsoup4
+
+      - name: 補助金チェックを実行
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_ADDRESS:     ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          NOTIFY_TO:         ${{ secrets.NOTIFY_TO }}
+        run: python checker.py
+
+      - name: 既読データをコミット・プッシュ
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add seen_items.json
+          git diff --staged --quiet || git commit -m "chore: update seen_items $(date +'%Y-%m-%d')"
+          git push
