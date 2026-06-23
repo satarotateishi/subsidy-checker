@@ -30,6 +30,12 @@ TARGETS = [
         "link_selector": "a",
     },
     {
+        "name": "J-Net21（補助金・助成金カテゴリ）",
+        "url": "https://j-net21.smrj.go.jp/snavi/articles?category%5B%5D=2",
+        "item_selector": ".article-list li, .list-item, li, article",
+        "link_selector": "a",
+    },
+    {
         "name": "J-Net21（支援情報ヘッドライン）",
         "url": "https://j-net21.smrj.go.jp/snavi2/",
         "item_selector": ".headline-list li, .news-list li, li",
